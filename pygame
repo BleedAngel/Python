@@ -1,5 +1,6 @@
 import pygame
 import random
+import os
 
 #pygame初始化
 pygame.init()
@@ -12,13 +13,19 @@ clock=pygame.time.Clock()
 #顏色
 WHITE=(255,255,255)
 BLACK=(0,0,0)
-GREEN=(0,255,0)
 RED=(255,0,0)
+GREEN=(0,255,0)
 YELLOW=(255,255,0)
 
 #創建視窗
 screen=pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("傻逼遊戲")
+
+#載入圖片
+background_image=pygame.image.load(os.path.join("image","universe.png")).convert()
+player_image=pygame.image.load(os.path.join("image","fighter.png")).convert()
+rock_image=pygame.image.load(os.path.join("image","rock.png")).convert()
+bullet_image=pygame.image.load(os.path.join("image","bullet.png")).convert()
 
 #物件
 class Player(pygame.sprite.Sprite):
@@ -26,12 +33,20 @@ class Player(pygame.sprite.Sprite):
     #初始化
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image=pygame.Surface((50,40))
-        self.image.fill(GREEN)
+
+        #外觀設置
+        self.image=pygame.transform.scale(player_image,(70,70))
+        self.image.set_colorkey(BLACK)
+
+        #位置設置
         self.rect=self.image.get_rect()
         self.rect.centerx=WIDTH/2
         self.rect.bottom=HEIGHT-10
         self.speedx=8
+
+        #碰撞範圍
+        self.radius=25
+        ##pygame.draw.circle(self.image,RED,self.rect.center,self.radius)
     
     #物件更新
     def update(self):
@@ -50,7 +65,7 @@ class Player(pygame.sprite.Sprite):
     #射擊
     def shoot(self):
         bullet=Bullet(self.rect.centerx,self.rect.top)
-        all_sprite.add(bullet)
+        all_sprites.add(bullet)
         bullets.add(bullet)
 
 class Rock(pygame.sprite.Sprite):
@@ -58,18 +73,35 @@ class Rock(pygame.sprite.Sprite):
     #初始化
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image=pygame.Surface((30,40))
-        self.image.fill(RED)
+        self.image_ori=rock_image
+        self.image_ori=pygame.transform.scale(rock_image,(112,112))
+        self.image_ori.set_colorkey(BLACK)
+        self.image=self.image_ori.copy()
         self.rect=self.image.get_rect()
+        self.radius=40
+        #pygame.draw.circle(self.image,RED,self.rect.center,self.radius)
         self.reset_pos()
     def reset_pos(self):
         self.rect.centerx=random.randrange(0,WIDTH-self.rect.width)
         self.rect.bottom=random.randrange(-100,-40)
         self.speedx=random.randrange(-3,3)
         self.speedy=random.randrange(2,10)
+        self.total_degree=0
+        self.rot_degree=random.randrange(-3,3)
     
+    def rotate(self):
+        self.total_degree+=self.rot_degree
+        self.total_degree%=360
+        self.image=pygame.transform.rotate(self.image_ori,self.total_degree)
+        center=self.rect.center
+        self.rect=self.image.get_rect()
+        self.rect.center=center
+
     #物件更新
     def update(self):
+
+        #轉動
+        self.rotate()
 
         #移動
         self.rect.x+=self.speedx
@@ -78,12 +110,12 @@ class Rock(pygame.sprite.Sprite):
             self.reset_pos()
 
 class Bullet(pygame.sprite.Sprite):
-
+ 
     #初始化
     def __init__(self,x,y):
         pygame.sprite.Sprite.__init__(self)
-        self.image=pygame.Surface((10,20))
-        self.image.fill(YELLOW)
+        self.image=pygame.transform.scale(bullet_image,(36,36))
+        self.image.set_colorkey(BLACK)
         self.rect=self.image.get_rect()
         self.rect.centerx=x
         self.rect.bottom=y
@@ -98,14 +130,14 @@ class Bullet(pygame.sprite.Sprite):
             self.kill()
 
 #加入物件
-all_sprite=pygame.sprite.Group()
+all_sprites=pygame.sprite.Group()
 player=Player()
-all_sprite.add(player)
+all_sprites.add(player)
 rocks=pygame.sprite.Group()
 bullets=pygame.sprite.Group()
 for i in range(8):
     rock=Rock()
-    all_sprite.add(rock)
+    all_sprites.add(rock)
     rocks.add(rock)
 
 #遊戲迴圈
@@ -126,12 +158,21 @@ while(running):
                 player.shoot()
     
     #更新遊戲
-    all_sprite.update()
-    pygame.sprite.groupcollide(rocks,bullets,True,True)
+    all_sprites.update()
+         
+    #碰撞
+    hits=pygame.sprite.groupcollide(rocks,bullets,True,True)
+    for hit in hits:
+        rock=Rock()
+        all_sprites.add(rock)
+        rocks.add(rock)
+    hits=pygame.sprite.spritecollide(player,rocks,False,pygame.sprite.collide_circle)
+    if(hits):
+        running=False 
 
     #畫面顯示
-    screen.fill((BLACK))
-    all_sprite.draw(screen)
+    screen.blit(background_image,(0,0))
+    all_sprites.draw(screen)
     pygame.display.update()
 
 pygame.quit()
