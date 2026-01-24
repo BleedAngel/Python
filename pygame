@@ -110,7 +110,7 @@ for i in range(8):
 
 #遊戲迴圈
 running=True
-while running:  
+while(running):  
     clock.tick(FPS)
 
     #取得輸入
