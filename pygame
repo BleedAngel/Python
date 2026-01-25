@@ -22,10 +22,12 @@ screen=pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("傻逼遊戲")
 
 #載入圖片
-background_image=pygame.image.load(os.path.join("image","universe.png")).convert()
-player_image=pygame.image.load(os.path.join("image","fighter.png")).convert()
-rock_image=pygame.image.load(os.path.join("image","rock.png")).convert()
-bullet_image=pygame.image.load(os.path.join("image","bullet.png")).convert()
+background_image=pygame.image.load(os.path.join("airplane_game","image","universe.png")).convert()
+player_image=pygame.image.load(os.path.join("airplane_game","image","fighter.png")).convert()
+rock_images=[]
+for i in range(7):
+    rock_images.append(pygame.image.load(os.path.join("airplane_game","image",f"rock{i}.png")).convert())
+bullet_image=pygame.image.load(os.path.join("airplane_game","image","bullet.png")).convert()
 
 #物件
 class Player(pygame.sprite.Sprite):
@@ -73,13 +75,11 @@ class Rock(pygame.sprite.Sprite):
     #初始化
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.image_ori=rock_image
-        self.image_ori=pygame.transform.scale(rock_image,(112,112))
+        self.image_ori=random.choice(rock_images)
         self.image_ori.set_colorkey(BLACK)
         self.image=self.image_ori.copy()
         self.rect=self.image.get_rect()
-        self.radius=40
-        #pygame.draw.circle(self.image,RED,self.rect.center,self.radius)
+        self.radius=self.rect.width//2
         self.reset_pos()
     def reset_pos(self):
         self.rect.centerx=random.randrange(0,WIDTH-self.rect.width)
@@ -96,6 +96,8 @@ class Rock(pygame.sprite.Sprite):
         center=self.rect.center
         self.rect=self.image.get_rect()
         self.rect.center=center
+        #pygame.draw.circle(self.image, RED, (self.rect.width//2, self.rect.height//2), self.radius)
+
 
     #物件更新
     def update(self):
