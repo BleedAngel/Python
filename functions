@@ -1,0 +1,31 @@
+import os
+import shutil
+
+FILE_TYPE={
+    "Image":[".jpg",".png",".jpeg"],
+    "Video":[".mp4",".mov"],
+    "Music":[".mp3",".wav"],
+    "Text":[".txt"],
+}
+
+TARGET_DIR=input("target_dir:\n")
+if not os.path.exists(TARGET_DIR):
+    print("Error")
+    exit()
+
+def organize_files():
+    for filename in os.listdir(TARGET_DIR):
+        file_path=os.path.join(TARGET_DIR,filename)
+        if(os.path.isfile(file_path)):
+            moved=False
+            for folder,extensions in FILE_TYPE.items():
+                if(filename.lower().endswith(tuple(extensions))):
+                    dest_folder=os.path.join(TARGET_DIR,folder)
+                    os.makedirs(dest_folder,exist_ok=True)
+                    print(f"{filename} → {folder}")
+                    shutil.move(file_path,os.path.join(dest_folder,filename))
+                    moved=True
+                    break
+
+if __name__=="__main__":
+    organize_files()
