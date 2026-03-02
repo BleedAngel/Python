@@ -1,0 +1,89 @@
+import os
+
+folder = "你的資料夾路徑"
+
+for filename in os.listdir(folder):
+    filepath = os.path.join(folder, filename)
+    if os.path.isfile(filepath):
+        try:
+            with open(filepath, "rb") as f:
+                f.read(1024)  # 嘗試讀取前 1KB
+            print(f"{filename} 正常")
+        except Exception as e:
+            print(f"{filename} 損壞或無法讀取: {e}")
+
+
+
+import hashlib
+import os
+
+def file_hash(filepath, algo="md5"):
+    h = hashlib.new(algo)
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+folder = "你的資料夾路徑"
+for filename in os.listdir(folder):
+    filepath = os.path.join(folder, filename)
+    if os.path.isfile(filepath):
+        print(filename, file_hash(filepath, "sha256"))
+
+
+
+
+
+
+
+
+
+import os
+import hashlib
+from PIL import Image
+import zipfile
+
+def file_hash(filepath, algo="sha256"):
+    """計算檔案雜湊值"""
+    h = hashlib.new(algo)
+    with open(filepath, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+def check_file(filepath):
+    """依副檔名檢查檔案是否能正常開啟"""
+    ext = os.path.splitext(filepath)[1].lower()
+    try:
+        if ext in [".jpg", ".jpeg", ".png", ".bmp"]:
+            Image.open(filepath).verify()  # 驗證圖片
+        elif ext in [".zip"]:
+            with zipfile.ZipFile(filepath, "r") as z:
+                bad = z.testzip()
+                if bad is not None:
+                    raise Exception(f"壓縮檔損壞: {bad}")
+        else:
+            # 一般檔案只測試能否讀取
+            with open(filepath, "rb") as f:
+                f.read(1024)
+        return True
+    except Exception as e:
+        return str(e)
+
+folder = "你的資料夾路徑"
+abnormal_files = []
+
+for filename in os.listdir(folder):
+    filepath = os.path.join(folder, filename)
+    if os.path.isfile(filepath):
+        result = check_file(filepath)
+        if result is not True:
+            abnormal_files.append((filename, result))
+
+# 輸出異常檔案
+if abnormal_files:
+    print("檢查到異常檔案：")
+    for fname, reason in abnormal_files:
+        print(f"- {fname}: {reason}")
+else:
+    print("所有檔案檢查正常")
