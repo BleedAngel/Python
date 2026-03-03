@@ -87,3 +87,84 @@ if abnormal_files:
         print(f"- {fname}: {reason}")
 else:
     print("所有檔案檢查正常")
+
+
+
+import os
+
+# 函式：檢查單一檔案
+def check_file(filepath):
+    try:
+        with open(filepath, "rb") as f:
+            f.read(1024)  # 讀取前 1KB 的資料
+        return True  # 檔案正常
+    except Exception as e:
+        return False, str(e)  # 檔案損壞或無法讀取
+
+# 函式：檢查資料夾中的所有檔案
+def check_files_in_folder(folder_path):
+    result = {
+        'normal': [],
+        'corrupted': [],
+    }
+    
+    # 確保資料夾存在
+    if not os.path.isdir(folder_path):
+        print(f"資料夾 {folder_path} 不存在或無法訪問")
+        return result
+    
+    # 逐一檢查資料夾中的每個檔案
+    for filename in os.listdir(folder_path):
+        filepath = os.path.join(folder_path, filename)
+        
+        if os.path.isfile(filepath):  # 只檢查文件
+            print(f"正在檢查檔案: {filename}")
+            status = check_file(filepath)
+            
+            if status is True:
+                result['normal'].append(filename)
+            else:
+                error_message = status[1]
+                result['corrupted'].append((filename, error_message))
+
+    return result
+
+# 函式：輸出結果
+def print_results(results):
+    print("\n檢查結果:")
+    print(f"正常檔案數量: {len(results['normal'])}")
+    for filename in results['normal']:
+        print(f"  - {filename} 正常")
+    
+    print(f"\n損壞檔案數量: {len(results['corrupted'])}")
+    for filename, error_message in results['corrupted']:
+        print(f"  - {filename} 損壞，錯誤訊息: {error_message}")
+
+# 函式：將結果寫入文件
+def save_results_to_file(results, output_file):
+    with open(output_file, 'w', encoding='utf-8') as f:
+        f.write("正常檔案:\n")
+        for filename in results['normal']:
+            f.write(f"  - {filename} 正常\n")
+        
+        f.write("\n損壞檔案:\n")
+        for filename, error_message in results['corrupted']:
+            f.write(f"  - {filename} 損壞，錯誤訊息: {error_message}\n")
+    
+    print(f"\n結果已經儲存到 {output_file}")
+
+# 主程序
+def main():
+    folder_path = input("請輸入要檢查的資料夾路徑: ")
+    output_file = input("請輸入結果儲存的檔案名稱（例如 output.txt）: ")
+    
+    results = check_files_in_folder(folder_path)
+    
+    # 顯示結果
+    print_results(results)
+    
+    # 儲存結果到檔案
+    save_results_to_file(results, output_file)
+
+if __name__ == "__main__":
+    main()
