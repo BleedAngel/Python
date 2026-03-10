@@ -1,1 +1,49 @@
+import hashlib
+import os
 
+TARGET_DIR=input("target_dir:\n").strip("'").strip('"').strip(" ")
+if not os.path.exists(TARGET_DIR):
+    print("Error")
+    exit()
+
+hash_file=os.path.join(TARGET_DIR,"hash_file.txt")
+open(hash_file,"w").close()
+
+def calculate_hash(file_path, algorithm="sha256"):
+    hash_func=hashlib.new(algorithm)
+    with open(file_path,"rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_func.update(chunk)
+    return hash_func.hexdigest()
+
+def save_hash(file_path,hash_value,hash_file):
+    with open(hash_file, "a") as f:
+        f.write(f"{file_path},{hash_value}\n")
+    return hash_file
+
+def verify_file(file_path, hash_file, algorithm="sha256"):
+    if not os.path.exists(hash_file):
+        print("沒有找到雜湊紀錄檔")
+        return False
+    
+    current_hash = calculate_hash(file_path, algorithm)
+    with open(hash_file, "r") as f:
+        for line in f:
+            stored_file, stored_hash = line.strip().split(",")
+            if stored_file == file_path:
+                if stored_hash == current_hash:
+                    print(f"{file_path} 完整性檢查通過 ✅")
+                    return True
+                else:
+                    print(f"{file_path} 已被修改 ❌")
+                    return False
+    print(f"{file_path} 沒有紀錄")
+    return False
+
+for entry in os.scandir(TARGET_DIR):
+    if(entry.is_file()):
+        file_path=entry.path
+        hash_value=calculate_hash(file_path)
+        save_hash(file_path,hash_value,hash_file)
+FILE=input("file:\n").strip('""')
+verify_file(FILE,hash_file)
