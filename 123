@@ -103,3 +103,81 @@ hash_value = calculate_hash(TARGET_FILE)
 hash_file=save_hash(TARGET_FILE, hash_value,TARGET_DIR)
 FILE=input("file:\n").strip('""')
 verify_file(FILE,hash_file)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import hashlib
+import os
+
+def calculate_hash(file_path, algorithm="sha256"):
+    h = hashlib.new(algorithm)
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+def save_hash(file_path, hash_value, target_dir):
+    hash_file = os.path.join(target_dir, "hash_file.txt")
+    with open(hash_file, "a") as f:
+        f.write(f"{file_path},{hash_value}\n")
+    return hash_file
+
+def verify_file(file_path, hash_file, algorithm="sha256"):
+    if not os.path.exists(hash_file):
+        print("沒有找到雜湊紀錄檔")
+        return False
+    
+    current_hash = calculate_hash(file_path, algorithm)
+    with open(hash_file, "r") as f:
+        for line in f:
+            try:
+                stored_file, stored_hash = line.strip().split(",")
+            except ValueError:
+                continue
+            if stored_file == file_path:
+                if stored_hash == current_hash:
+                    print(f"{file_path} 完整性檢查通過 ✅")
+                    return True
+                else:
+                    print(f"{file_path} 已被修改 ❌")
+                    return False
+    print(f"{file_path} 沒有紀錄")
+    return False
+
+# 主程式：處理整個資料夾
+TARGET_DIR = input("target dir:\n").strip('"').strip("'")
+if not os.path.exists(TARGET_DIR):
+    print("Error: 資料夾不存在")
+    exit()
+
+# 先清空舊的 hash_file.txt
+hash_file = os.path.join(TARGET_DIR, "hash_file.txt")
+open(hash_file, "w").close()
+
+# 對資料夾裡所有檔案計算並存 Hash
+for entry in os.scandir(TARGET_DIR):
+    if entry.is_file():  # 只處理檔案，不處理子資料夾
+        file_path = entry.path
+        hash_value = calculate_hash(file_path)
+        save_hash(file_path, hash_value, TARGET_DIR)
+
+# 驗證所有檔案
+for entry in os.scandir(TARGET_DIR):
+    if entry.is_file():
+        verify_file(entry.path, hash_file)
