@@ -1,8 +1,13 @@
-import hashlib
 import os
+import hashlib
 
 TARGET_DIR=input("target_dir:\n").strip("'").strip('"').strip(" ")
 if not os.path.exists(TARGET_DIR):
+    print("Error")
+    exit()
+
+CHECK_DIR=input("check dir:\n").strip("'").strip('"').strip(" ")
+if not os.path.exists(CHECK_DIR):
     print("Error")
     exit()
 
@@ -14,30 +19,34 @@ def calculate_hash(file_path, algorithm="sha256"):
     with open(file_path,"rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_func.update(chunk)
+
     return hash_func.hexdigest()
 
 def save_hash(file_path,hash_value,hash_file):
+    file_name=os.path.basename(file_path)
     with open(hash_file, "a") as f:
-        f.write(f"{file_path},{hash_value}\n")
-    return hash_file
+        f.write(f"{file_name},{hash_value}\n")
 
-def verify_file(file_path, hash_file, algorithm="sha256"):
+def verify_file(file_path,hash_file,):
     if not os.path.exists(hash_file):
         print("沒有找到雜湊紀錄檔")
+
         return False
     
-    current_hash = calculate_hash(file_path, algorithm)
-    with open(hash_file, "r") as f:
+    current_hash=calculate_hash(file_path)
+    file_name=os.path.basename(file_path)
+    with open(hash_file,"r") as f:
         for line in f:
-            stored_file, stored_hash = line.strip().split(",")
-            if stored_file == file_path:
-                if stored_hash == current_hash:
-                    print(f"{file_path} 完整性檢查通過 ✅")
+            stored_file,stored_hash=line.strip().split(",")
+            if stored_file==file_name:
+                if stored_hash==current_hash:
+                    print(f"完整性檢查通過✅ {file_name}")
                     return True
                 else:
-                    print(f"{file_path} 已被修改 ❌")
+                    print(f"已被修改❌ {file_name}")
                     return False
-    print(f"{file_path} 沒有紀錄")
+                
+    print(f"沒有紀錄 {file_path}")
     return False
 
 for entry in os.scandir(TARGET_DIR):
@@ -45,5 +54,8 @@ for entry in os.scandir(TARGET_DIR):
         file_path=entry.path
         hash_value=calculate_hash(file_path)
         save_hash(file_path,hash_value,hash_file)
-FILE=input("file:\n").strip('""')
-verify_file(FILE,hash_file)
+
+for entry in os.scandir(CHECK_DIR):
+    if(entry.is_file()):
+        file_path=entry.path
+        verify_file(file_path,hash_file)
