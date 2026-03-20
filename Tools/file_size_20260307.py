@@ -23,10 +23,10 @@ def organize_files():
             moved=False
 
             file_size=os.path.getsize(file_path)
-            category=FILE_SIZE_CATEGORY(size)
+            category=FILE_SIZE_CATEGORY(file_size)
             dest_folder=os.path.join(TARGET_DIR,category)
             os.makedirs(dest_folder,exist_ok=True)
-            print(f"{filename}({size//1024//1024} MB) → {category}")
+            print(f"{filename}({file_size//1024//1024} MB) → {category}")
             #shutil.move(file_path,os.path.join(dest_folder,filename))
             moved=True
             break
