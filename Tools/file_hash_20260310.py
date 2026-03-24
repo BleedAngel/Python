@@ -72,6 +72,8 @@ if "s" in ANSWER:
     HASH_DIR=input("hash dir:\n").strip("'").strip('"').strip(" ")
     validate_directory(HASH_DIR)
 
+    SUPPORTED_FILE_MODE=["w","a"]
+    FILE_MODE=input("???")
     #生成txt檔
     hash_file=os.path.join(HASH_DIR,"hash_file.txt")
     open(hash_file,"w").close()
