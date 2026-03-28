@@ -17,11 +17,11 @@ def validate_algorithm(algorithm):
         sys.exit(1)
 
 #選擇模式
-ANSWER=input("choose mode \nsave file hash[s] | verify file hash[v] | save & verify[sv] \n")
+answer=input("Choose mode: \nsave file hash[s] | verify file hash[v] | save & verify[sv] \n")
 
 #選擇演算法模式
-print("available algorithm: ",hashlib.algorithms_available)
-algorithm=input("choose algorithm \n")
+print("Available algorithm: ",hashlib.algorithms_available)
+algorithm=input("Choose algorithm: \n")
 validate_algorithm(algorithm)
 
 #計算hash值
@@ -41,7 +41,7 @@ def save_hash(file_path,hash_value,hash_file):
         f.write(f"{file_name},{hash_value}\n")
 
 #對比hash值
-def verify_file(file_path,hash_file):
+def verify_hash(file_path,hash_file):
     validate_file(hash_file)
     
     current_hash=calculate_hash(file_path,algorithm)
@@ -54,7 +54,7 @@ def verify_file(file_path,hash_file):
                     print(f"✅ Integrity check passed: '{file_name}'")
                     return True
                 else:
-                    print(f"❌ File has been modified: '{file_name}'")
+                    print(f"⚠️ File has been modified: '{file_name}'")
                     return False
                 
     print(f"❌ No record found for: {file_path}")
@@ -65,21 +65,32 @@ save_summary=0
 check_summary=0
 
 #要求存取hash值
-if "s" in ANSWER:
-    TARGET_DIR=input("target_dir:\n").strip("'").strip('"').strip(" ")
-    validate_directory(TARGET_DIR)
-
-    HASH_DIR=input("hash dir:\n").strip("'").strip('"').strip(" ")
-    validate_directory(HASH_DIR)
+if "s" in answer:
+    target_dir=input("Target_dir: \n").strip("'").strip('"').strip(" ")
+    validate_directory(target_dir)
 
     SUPPORTED_FILE_MODE=["w","a"]
-    FILE_MODE=input("???")
-    #生成txt檔
-    hash_file=os.path.join(HASH_DIR,"hash_file.txt")
-    open(hash_file,"w").close()
+    print("Support file mode: \n",SUPPORTED_FILE_MODE)
+    file_mode=input("Choose file mode: \n")
+
+    if(file_mode=="w"):
+        operation=input("Choose operation: \nmake file[m] | cover file[c]: \n")
+        if(operation=="m"):
+            hash_dir=input("Hash dir: \n").strip("'").strip('"').strip(" ")
+            validate_directory(hash_dir)
+            hash_file=os.path.join(hash_dir,"hash_file.txt")
+        if(operation=="c"):
+            hash_file=input("Hash file: \n").strip("'").strip('"').strip(" ")
+            validate_file(hash_file)
+    
+    if(file_mode=="a"):
+        hash_file=input("Hash file: \n").strip("'").strip('"').strip(" ")
+        validate_file(hash_file)
+
+    open(hash_file,file_mode).close()
 
     #逐一生成並存取hash值
-    for entry in os.scandir(TARGET_DIR):
+    for entry in os.scandir(target_dir):
         if(entry.is_file()):
             file_path=entry.path
             hash_value=calculate_hash(file_path,algorithm)
@@ -89,20 +100,20 @@ if "s" in ANSWER:
     print(f"✅ Hash file saved successfully!*{save_summary}")
 
 #要求對比hash值
-if "v" in ANSWER:
-    CHECK_DIR=input("check dir:\n").strip("'").strip('"').strip(" ")
-    validate_directory(CHECK_DIR)
+if "v" in answer:
+    check_dir=input("Check dir: \n").strip("'").strip('"').strip(" ")
+    validate_directory(check_dir)
 
     #讀取已有的hash值存取txt檔
-    if "s" not in ANSWER:
-        hash_file=input("hash file:\n").strip("'").strip('"').strip(" ")
+    if "s" not in answer:
+        hash_file=input("Hash file: \n").strip("'").strip('"').strip(" ")
         validate_file(hash_file)
 
     #逐一對比hash值
-    for entry in os.scandir(CHECK_DIR):
+    for entry in os.scandir(check_dir):
         if(entry.is_file()):
             file_path=entry.path
-            verify_file(file_path,hash_file)
+            verify_hash(file_path,hash_file)
             check_summary+=1
 
     print(f"✅ File checked successfully!*{check_summary}")
