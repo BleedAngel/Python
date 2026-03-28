@@ -8,7 +8,7 @@ FILE_TYPE={
     "Text":[".txt"],
 }
 
-TARGET_DIR=input("target_dir:\n")
+TARGET_DIR=input("target_dir:\n").strip("'").strip('"')
 if not os.path.exists(TARGET_DIR):
     print("Error")
     exit()
