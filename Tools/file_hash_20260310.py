@@ -15,12 +15,24 @@ def validate_algorithm(algorithm):
     if algorithm not in hashlib.algorithms_available:
         print(f"Error: '{algorithm}' is not supported.")
         sys.exit(1)
+def validate_response(response,options):
+    if response not in options:
+        print(f"Error: '{response}' is not supported.")
+        sys.exit(1)
 
 #選擇模式
-answer=input("Choose mode: \nsave file hash[s] | verify file hash[v] | save & verify[sv] \n")
+EXECUTE_MODE=["s","v","sv"]
+execute_mode=input(
+    f"Supported execute_mode: \n"
+    f"Save hash[{EXECUTE_MODE[0]}] | "
+    f"Verify hash[{EXECUTE_MODE[1]}] | "
+    f"Save & Verify[{EXECUTE_MODE[2]}] \n"
+    f"Choose execute_mode: \n"
+)
+validate_response(execute_mode,EXECUTE_MODE)
 
 #選擇演算法模式
-print("Available algorithm: ",hashlib.algorithms_available)
+print("Supported algorithm: \n",hashlib.algorithms_available)
 algorithm=input("Choose algorithm: \n")
 validate_algorithm(algorithm)
 
@@ -65,13 +77,22 @@ save_summary=0
 check_summary=0
 
 #要求存取hash值
-if "s" in answer:
+if "s" in execute_mode:
     target_dir=input("Target_dir: \n").strip("'").strip('"').strip(" ")
     validate_directory(target_dir)
 
-    SUPPORTED_FILE_MODE=["w","a"]
-    print("Support file mode: \n",SUPPORTED_FILE_MODE)
-    file_mode=input("Choose file mode: \n")
+    FILE_MODE=["w","a"]
+    file_mode=input(
+        f"Supported file_mode: \n"
+        f"Write file[{FILE_MODE[0]}]"
+        f"Append file[{FILE_MODE[1]}]"
+        f"Choose file mode: \n"
+    )
+    validate_response(file_mode,FILE_MODE)
+
+    if file_mode not in FILE_MODE:
+        print(f"Error: '{file_mode}' is not supported")
+        sys.exit(1)
 
     if(file_mode=="w"):
         operation=input("Choose operation: \nmake file[m] | cover file[c]: \n")
@@ -100,12 +121,12 @@ if "s" in answer:
     print(f"✅ Hash file saved successfully!*{save_summary}")
 
 #要求對比hash值
-if "v" in answer:
+if "v" in execute_mode:
     check_dir=input("Check dir: \n").strip("'").strip('"').strip(" ")
     validate_directory(check_dir)
 
     #讀取已有的hash值存取txt檔
-    if "s" not in answer:
+    if "s" not in execute_mode:
         hash_file=input("Hash file: \n").strip("'").strip('"').strip(" ")
         validate_file(hash_file)
 
