@@ -66,7 +66,7 @@ def verify_hash(file_path,hash_file):
                     print(f"✅ Integrity check passed: '{file_name}'")
                     return True
                 else:
-                    print(f"⚠️ File has been modified: '{file_name}'")
+                    print(f"⚠️ Integrity check failed: '{file_name}'")
                     return False
                 
     print(f"❌ No record found for: {file_path}")
@@ -84,23 +84,29 @@ if "s" in execute_mode:
     FILE_MODE=["w","a"]
     file_mode=input(
         f"Supported file_mode: \n"
-        f"Write file[{FILE_MODE[0]}]"
-        f"Append file[{FILE_MODE[1]}]"
+        f"Write file[{FILE_MODE[0]}] | "
+        f"Append file[{FILE_MODE[1]}] \n"
         f"Choose file mode: \n"
     )
     validate_response(file_mode,FILE_MODE)
 
-    if file_mode not in FILE_MODE:
-        print(f"Error: '{file_mode}' is not supported")
-        sys.exit(1)
-
     if(file_mode=="w"):
-        operation=input("Choose operation: \nmake file[m] | cover file[c]: \n")
-        if(operation=="m"):
+        OPERATION_MODE=["m","c"]
+        operation_mode=input(
+            f"Supported operation_mode: \n"
+            f"Make file[{OPERATION_MODE[0]}] | "
+            f"Cover file[{OPERATION_MODE[1]}] \n"
+            f"Choose operation: \n"
+        )
+        validate_response(operation_mode,OPERATION_MODE)
+
+        if(operation_mode==OPERATION_MODE[0]):
             hash_dir=input("Hash dir: \n").strip("'").strip('"').strip(" ")
             validate_directory(hash_dir)
-            hash_file=os.path.join(hash_dir,"hash_file.txt")
-        if(operation=="c"):
+            target_dir_name=os.path.basename(target_dir)
+            hash_file=os.path.join(hash_dir,f"hash_file({target_dir_name}).txt")
+
+        if(operation_mode==OPERATION_MODE[1]):
             hash_file=input("Hash file: \n").strip("'").strip('"').strip(" ")
             validate_file(hash_file)
     
